@@ -2,7 +2,7 @@ module OpenIdAuthentication
   protected
     # OpenIDs are expected to begin with http:// or https://
     def open_id?(user_name) #:doc:
-      user_name =~ /^https?:\/\//i || params[:open_id_complete]
+      (Object.const_defined?(:OpenID) && user_name =~ /^https?:\/\//i) || params[:open_id_complete]
     end
 
     def authenticate_with_open_id(identity_url, &block) #:doc:
