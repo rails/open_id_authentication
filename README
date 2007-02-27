@@ -94,5 +94,40 @@ app/controllers/session_controller.rb
       end
   end
 
+Simple Registration OpenID Extension
+====================================
+
+Some OpenID Providers support this lightweight profile exchange protocol.  See more: http://www.openidenabled.com/openid/simple-registration-extension
+
+You can support it in your app by changing #open_id_authentication
+
+      def open_id_authentication(identity_url)
+        # Pass optional :required and :optional keys to specify what sreg fields you want.
+        # Be sure to yield registration, a third argument in the #authenticate_with_open_id block.
+        authenticate_with_open_id(identity_url, :required => [:nickname, :email], :optional => :fullname) do |status, identity_url, registration|
+          case status
+          when :missing
+            failed_login "Sorry, the OpenID server couldn't be found"
+          when :canceled
+            failed_login "OpenID verification was canceled"
+          when :failed
+            failed_login "Sorry, the OpenID verification failed"
+          when :successful
+            if @current_user = @account.users.find_by_identity_url(identity_url)
+              # registration is a hash containing the valid sreg keys given above
+              # use this to map them to fields of your user model
+              {'login=' => 'nickname', 'email=' => 'email', 'display_name=' => 'fullname'}.each do |attr, reg|
+                current_user.send(attr, registration[reg]) unless registration[reg].blank?
+              end
+              unless current_user.save
+                flash[:error] = "Error saving the fields from your OpenID profile: #{current_user.errors.full_messages.to_sentence}"
+              end
+              successful_login
+            else
+              failed_login "Sorry, no user by that identity URL exists"
+            end
+          end
+        end
+      end
 
 Copyright (c) 2007 David Heinemeier Hansson, released under the MIT license
