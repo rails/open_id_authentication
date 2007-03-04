@@ -56,8 +56,8 @@ app/controllers/session_controller.rb
       end
 
       def open_id_authentication(identity_url)
-        authenticate_with_open_id(identity_url) do |status, identity_url|
-          case status
+        authenticate_with_open_id(identity_url) do |result, identity_url|
+          case result
           when :missing
             failed_login "Sorry, the OpenID server couldn't be found"
           when :canceled
@@ -86,6 +86,25 @@ app/controllers/session_controller.rb
         redirect_to(new_session_url)
       end
   end
+
+
+
+If you're fine with the result messages above and don't need individual logic on a per-failure basis,
+you can collapse the case into a mere boolean:
+
+    def open_id_authentication(identity_url)
+      authenticate_with_open_id(identity_url) do |result, identity_url|
+        if result.successful?
+          if @current_user = @account.users.find_by_identity_url(identity_url)
+            successful_login
+          else
+            failed_login "Sorry, no user by that identity URL exists"
+          end
+        else
+          failed_login(result.message)
+        end
+      end
+    end
 
 
 Simple Registration OpenID Extension

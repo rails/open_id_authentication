@@ -1,6 +1,44 @@
 module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
 
+  class Result
+    MESSAGES = {
+      :missing    => "Sorry, the OpenID server couldn't be found",
+      :canceled   => "OpenID verification was canceled",
+      :failed     => "Sorry, the OpenID verification failed",
+      :successful => "OpenID authentication successful"
+    }
+    
+    ERROR_STATES = [ :missing, :canceled, :failed ]
+    
+    def self.[](code)
+      new(code)
+    end
+    
+    def initialize(code)
+      @code = code
+    end
+    
+    def ===(code)
+      if code == :unsuccessful && unsuccessful?
+        true
+      else
+        @code == code
+      end
+    end
+    
+    MESSAGES.keys.each { |state| define_method("#{state}?") { @code == state } }
+
+    def unsuccessful?
+      ERROR_STATES.include?(@code)
+    end
+    
+    def message
+      MESSAGES[@code]
+    end
+  end
+
+
   protected
     # OpenIDs are expected to begin with http:// or https://
     def open_id?(user_name) #:doc:
@@ -17,11 +55,11 @@ module OpenIdAuthentication
 
   private
     def begin_open_id_authentication(identity_url, fields = {})
-      open_id_response = open_id_consumer.begin(identity_url)
+      open_id_response = timeout_protection_from_identity_server { open_id_consumer.begin(identity_url) }
 
       case open_id_response.status
       when OpenID::FAILURE
-        yield :missing, identity_url, nil
+        yield Result[:missing], identity_url, nil
       when OpenID::SUCCESS
         add_simple_registration_fields(open_id_response, fields)
         redirect_to(open_id_redirect_url(open_id_response))
@@ -29,16 +67,16 @@ module OpenIdAuthentication
     end
   
     def complete_open_id_authentication
-      open_id_response = open_id_consumer.complete(params)
+      open_id_response = timeout_protection_from_identity_server { open_id_consumer.complete(params) }
 
       case open_id_response.status
       when OpenID::CANCEL
-        yield :canceled, open_id_response.identity_url, nil
+        yield Result[:canceled], open_id_response.identity_url, nil
       when OpenID::FAILURE
         logger.info "OpenID authentication failed: #{open_id_response.msg}"
-        yield :failed, open_id_response.identity_url, nil
+        yield Result[:failed], open_id_response.identity_url, nil
       when OpenID::SUCCESS
-        yield :successful, open_id_response.identity_url, open_id_response.extension_response('sreg')
+        yield Result[:successful], open_id_response.identity_url, open_id_response.extension_response('sreg')
       end      
     end
 
@@ -57,5 +95,20 @@ module OpenIdAuthentication
         request.protocol + request.host,
         open_id_response.return_to("#{request.url}?open_id_complete=1")
       )     
+    end
+
+
+    def timeout_protection_from_identity_server
+      yield
+    rescue Timeout::Error
+      Class.new do
+        def status
+          OpenID::FAILURE
+        end
+        
+        def msg
+          "Identity server timed out"
+        end
+      end.new
     end
 end

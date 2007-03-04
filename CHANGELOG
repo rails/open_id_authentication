@@ -1,1 +1,3 @@
+* Added OpenIdAuthentication::Result to make it easier to deal with default situations where you don't care to do something particular for each error state [DHH]
+
 * Stop relying on root_url being defined, we can just grab the current url instead [DHH]
