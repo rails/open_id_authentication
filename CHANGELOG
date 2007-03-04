@@ -1,0 +1,1 @@
+* Stop relying on root_url being defined, we can just grab the current url instead [DHH]
