@@ -8,6 +8,8 @@ Provides a thin wrapper around the excellent ruby-openid gem from JanRan. Be sur
 To understand what OpenID is about and how it works, it helps to read the documentation for lib/openid/consumer.rb
 from that gem.
 
+The specification used is http://openid.net/specs/openid-authentication-1_1.html (not the 2.0 draft).
+
 
 Prerequisites
 =============
@@ -35,11 +37,38 @@ config/routes.rb
   map.resource :session
 
 
+app/views/sessions/new.erb
+
+  <% form_tag(session_url) do %>
+    <p>
+      <label for="name">Username:</label>
+      <%= text_field_tag "name" %>
+    </p>
+
+    <p>
+      <label for="password">Password:</label>
+      <%= password_field_tag %>
+    </p>
+
+    <p>
+      ...or use:
+    </p>
+
+    <p>
+      <label for="openid_url">OpenID:</label>
+      <%= text_field_tag "openid_url" %>
+    </p>
+
+    <p>
+      <%= submit_tag 'Sign in', :disable_with => "Signing in&hellip;" %>
+    </p>
+  <% end %>
+
 app/controllers/session_controller.rb
   class SessionController < ApplicationController
     def create
-      if open_id?(params[:name])
-        open_id_authentication(params[:name])
+      if using_open_id?
+        open_id_authentication
       else
         password_authentication(params[:name], params[:password])
       end
@@ -55,8 +84,8 @@ app/controllers/session_controller.rb
         end
       end
 
-      def open_id_authentication(identity_url)
-        authenticate_with_open_id(identity_url) do |result, identity_url|
+      def open_id_authentication
+        authenticate_with_open_id do |result, identity_url|
           case result
           when :missing
             failed_login "Sorry, the OpenID server couldn't be found"
@@ -68,7 +97,7 @@ app/controllers/session_controller.rb
             if @current_user = @account.users.find_by_identity_url(identity_url)
               successful_login
             else
-              failed_login "Sorry, no user by that identity URL exists"
+              failed_login "Sorry, no user by that identity URL exists (#{identity_url})")
             end
           end
         end
@@ -92,16 +121,12 @@ app/controllers/session_controller.rb
 If you're fine with the result messages above and don't need individual logic on a per-failure basis,
 you can collapse the case into a mere boolean:
 
-    def open_id_authentication(identity_url)
-      authenticate_with_open_id(identity_url) do |result, identity_url|
-        if result.successful?
-          if @current_user = @account.users.find_by_identity_url(identity_url)
-            successful_login
-          else
-            failed_login "Sorry, no user by that identity URL exists"
-          end
+    def open_id_authentication
+      authenticate_with_open_id do |result, identity_url|
+        if result.successful? && @current_user = @account.users.find_by_identity_url(identity_url)
+          successful_login
         else
-          failed_login(result.message)
+          failed_login(result.message || "Sorry, no user by that identity URL exists (#{identity_url})")
         end
       end
     end

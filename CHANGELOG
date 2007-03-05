@@ -1,3 +1,7 @@
+* Added normalize_url and applied it to all operations going through the plugin [DHH]
+
+* Removed open_id? as the idea of using the same input box for both OpenID and username has died -- use using_open_id? instead (which checks for the presence of params[:openid_url] by default) [DHH]
+
 * Added OpenIdAuthentication::Result to make it easier to deal with default situations where you don't care to do something particular for each error state [DHH]
 
 * Stop relying on root_url being defined, we can just grab the current url instead [DHH]

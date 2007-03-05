@@ -2,14 +2,11 @@ module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
 
   class Result
-    MESSAGES = {
+    ERROR_MESSAGES = {
       :missing    => "Sorry, the OpenID server couldn't be found",
       :canceled   => "OpenID verification was canceled",
-      :failed     => "Sorry, the OpenID verification failed",
-      :successful => "OpenID authentication successful"
+      :failed     => "Sorry, the OpenID verification failed"
     }
-    
-    ERROR_STATES = [ :missing, :canceled, :failed ]
     
     def self.[](code)
       new(code)
@@ -27,31 +24,54 @@ module OpenIdAuthentication
       end
     end
     
-    MESSAGES.keys.each { |state| define_method("#{state}?") { @code == state } }
+    ERROR_MESSAGES.keys.each { |state| define_method("#{state}?") { @code == state } }
+
+    def successful?
+      @code == :successful
+    end
 
     def unsuccessful?
-      ERROR_STATES.include?(@code)
+      ERROR_MESSAGES.keys.include?(@code)
     end
     
     def message
-      MESSAGES[@code]
+      ERROR_MESSAGES[@code]
     end
   end
 
 
   protected
-    # OpenIDs are expected to begin with http:// or https://
-    def open_id?(user_name) #:doc:
-      (Object.const_defined?(:OpenID) && user_name =~ /^https?:\/\//i) || params[:open_id_complete]
+    def normalize_url(url)
+      url = url.downcase
+    
+      case url
+      when %r{^https?://[^/]+/[^/]*}
+        url # already normalized
+      when %r{^https?://[^/]+$}
+        url + "/"
+      when %r{^[.\d\w]+/.*$}
+        "http://" + url
+      when %r{^[.\d\w]+$}
+        "http://" + url + "/"
+      else
+        raise "Unable to normalize: #{url}"
+      end
     end
 
-    def authenticate_with_open_id(identity_url, fields = {}, &block) #:doc:
+    # The parameter name of "openid_url" is used rather than the Rails convention "open_id_url"
+    # because that's what the specification dictates in order to get browser auto-complete working across sites
+    def using_open_id?(identity_url = params[:openid_url]) #:doc:
+      !identity_url.blank? || params[:open_id_complete]
+    end
+
+    def authenticate_with_open_id(identity_url = params[:openid_url], fields = {}, &block) #:doc:
       if params[:open_id_complete].nil?
-        begin_open_id_authentication(identity_url, fields, &block)
+        begin_open_id_authentication(normalize_url(identity_url), fields, &block)
       else
         complete_open_id_authentication(&block)
       end
     end
+
 
   private
     def begin_open_id_authentication(identity_url, fields = {})
@@ -68,15 +88,16 @@ module OpenIdAuthentication
   
     def complete_open_id_authentication
       open_id_response = timeout_protection_from_identity_server { open_id_consumer.complete(params) }
+      identity_url     = normalize_url(open_id_response.identity_url)
 
       case open_id_response.status
       when OpenID::CANCEL
-        yield Result[:canceled], open_id_response.identity_url, nil
+        yield Result[:canceled], identity_url, nil
       when OpenID::FAILURE
         logger.info "OpenID authentication failed: #{open_id_response.msg}"
-        yield Result[:failed], open_id_response.identity_url, nil
+        yield Result[:failed], identity_url, nil
       when OpenID::SUCCESS
-        yield Result[:successful], open_id_response.identity_url, open_id_response.extension_response('sreg')
+        yield Result[:successful], identity_url, open_id_response.extension_response('sreg')
       end      
     end
 
@@ -96,7 +117,6 @@ module OpenIdAuthentication
         open_id_response.return_to("#{request.url}?open_id_complete=1")
       )     
     end
-
 
     def timeout_protection_from_identity_server
       yield
