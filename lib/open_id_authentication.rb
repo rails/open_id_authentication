@@ -39,23 +39,27 @@ module OpenIdAuthentication
     end
   end
 
+  def self.normalize_url(url)
+    url = url.downcase
+  
+    case url
+    when %r{^https?://[^/]+/[^/]*}
+      url # already normalized
+    when %r{^https?://[^/]+$}
+      url + "/"
+    when %r{^[.\d\w]+/.*$}
+      "http://" + url
+    when %r{^[.\d\w]+$}
+      "http://" + url + "/"
+    else
+      raise "Unable to normalize: #{url}"
+    end
+  end
+
 
   protected
     def normalize_url(url)
-      url = url.downcase
-    
-      case url
-      when %r{^https?://[^/]+/[^/]*}
-        url # already normalized
-      when %r{^https?://[^/]+$}
-        url + "/"
-      when %r{^[.\d\w]+/.*$}
-        "http://" + url
-      when %r{^[.\d\w]+$}
-        "http://" + url + "/"
-      else
-        raise "Unable to normalize: #{url}"
-      end
+      OpenIdAuthentication.normalize_url(url)
     end
 
     # The parameter name of "openid_url" is used rather than the Rails convention "open_id_url"
@@ -113,7 +117,7 @@ module OpenIdAuthentication
     
     def open_id_redirect_url(open_id_response)
       open_id_response.redirect_url(
-        request.protocol + request.host,
+        request.protocol + request.host_with_port + "/",
         open_id_response.return_to("#{request.url}?open_id_complete=1")
       )     
     end
