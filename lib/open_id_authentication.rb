@@ -92,7 +92,7 @@ module OpenIdAuthentication
   
     def complete_open_id_authentication
       open_id_response = timeout_protection_from_identity_server { open_id_consumer.complete(params) }
-      identity_url     = normalize_url(open_id_response.identity_url)
+      identity_url     = normalize_url(open_id_response.identity_url) if open_id_response.identity_url
 
       case open_id_response.status
       when OpenID::CANCEL
