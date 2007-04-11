@@ -5,7 +5,7 @@ namespace :open_id_authentication do
       raise "Task unavailable to this database (no migration support)" unless ActiveRecord::Base.connection.supports_migrations?
       require 'rails_generator'
       require 'rails_generator/scripts/generate'
-      Rails::Generator::Scripts::Generate.new.run([ "open_id_authentication_tables", "open_id_authentication_tables" ])
+      Rails::Generator::Scripts::Generate.new.run([ "open_id_authentication_tables", "add_open_id_authentication_tables" ])
     end
 
     desc "Clear the authentication tables"
