@@ -14,9 +14,14 @@ The specification used is http://openid.net/specs/openid-authentication-1_1.html
 Prerequisites
 =============
 
-OpenID authentication uses the session, so be sure that you haven't turned that off. It also relies on tmp/openids
-being present in RAILS_ROOT. The install.rb should install that automatically as you get the plugin, but if not, be
-sure to do that yourself.
+OpenID authentication uses the session, so be sure that you haven't turned that off. It also relies on a number of
+database tables to store the authentication keys. So you'll have to run the migration to create these before you get started:
+
+  rake open_id_authentication:db:create
+
+Alternatively, you can use the file-based store, which just relies on on tmp/openids being present in RAILS_ROOT. But be aware that this store only works if you have a single application server. And it's not safe to use across NFS. It's recommended that you use the database store if at all possible. To use the file-based store, you'll also have to add this line to your config/environment.rb:
+
+  OpenIdAuthentication.store = :file
 
 This particular plugin also relies on the fact that the authentication action allows for both POST and GET operations.
 If you're using RESTful authentication, you'll need to explicitly allow for this in your routes.rb. 

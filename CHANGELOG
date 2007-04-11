@@ -1,3 +1,5 @@
+* Added a new default database-backed store after experiencing trouble with the filestore on NFS. The file store is still available as an option [DHH]
+
 * Added normalize_url and applied it to all operations going through the plugin [DHH]
 
 * Removed open_id? as the idea of using the same input box for both OpenID and username has died -- use using_open_id? instead (which checks for the presence of params[:openid_url] by default) [DHH]

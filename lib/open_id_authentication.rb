@@ -1,5 +1,8 @@
 module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
+  
+  @@store = :db
+  mattr_accessor :store
 
   class Result
     ERROR_MESSAGES = {
@@ -106,7 +109,16 @@ module OpenIdAuthentication
     end
 
     def open_id_consumer
-      OpenID::Consumer.new(session, OpenID::FilesystemStore.new(OPEN_ID_AUTHENTICATION_DIR))
+      OpenID::Consumer.new(session, open_id_store)
+    end
+    
+    def open_id_store
+      case store
+      when :db  : OpenIdAuthentication::DbStore.new
+      when :file: OpenID::FilesystemStore.new(OPEN_ID_AUTHENTICATION_DIR)
+      else
+        raise "Unknown store: #{store}"
+      end
     end
 
 
