@@ -55,7 +55,7 @@ module OpenIdAuthentication
     when %r{^[.\d\w]+$}
       "http://" + url + "/"
     else
-      raise "Unable to normalize: #{url}"
+      raise "#{url} is not a correctly formatted OpenID address"
     end
   end
 
