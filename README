@@ -38,7 +38,7 @@ not a destination.
 
 config/routes.rb
 
-  map.open_id_complete 'session', :controller => "session", :action => "create", :requirements => { :method => :get }
+  map.open_id_complete 'session', :controller => "sessions", :action => "create", :requirements => { :method => :get }
   map.resource :session
 
 
@@ -69,8 +69,8 @@ app/views/sessions/new.erb
     </p>
   <% end %>
 
-app/controllers/session_controller.rb
-  class SessionController < ApplicationController
+app/controllers/sessions_controller.rb
+  class SessionsController < ApplicationController
     def create
       if using_open_id?
         open_id_authentication
