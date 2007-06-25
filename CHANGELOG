@@ -1,3 +1,7 @@
+* Throw a InvalidOpenId exception instead of just a RuntimeError when the URL can't be normalized [DHH]
+
+* Just use the path for the return URL, so extra query parameters don't interfere [DHH]
+
 * Added a new default database-backed store after experiencing trouble with the filestore on NFS. The file store is still available as an option [DHH]
 
 * Added normalize_url and applied it to all operations going through the plugin [DHH]

@@ -1,4 +1,6 @@
 require 'test/unit'
+require 'rubygems'
+require 'active_support'
 
 RAILS_ROOT = File.dirname(__FILE__)
 require File.dirname(__FILE__) + "/../lib/open_id_authentication"
@@ -18,5 +20,9 @@ class NormalizeTest < Test::Unit::TestCase
     NORMALIZATIONS.each do |from, to|
       assert_equal to, normalize_url(from)
     end
+  end
+  
+  def test_broken_open_id
+    assert_raises(InvalidOpenId) { normalize_url("=name") }
   end
 end
