@@ -10,6 +10,10 @@ module OpenIdAuthentication
   end
   
   self.store = :db
+  
+  def store
+    OpenIdAuthentication.store
+  end
 
   class InvalidOpenId < StandardError
   end
