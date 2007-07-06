@@ -1,8 +1,15 @@
 module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
   
-  @@store = :db
-  mattr_accessor :store
+  def self.store
+    @@store
+  end
+  
+  def self.store=(value)
+    @@store = value
+  end
+  
+  self.store = :db
 
   class InvalidOpenId < StandardError
   end
@@ -53,9 +60,9 @@ module OpenIdAuthentication
       url # already normalized
     when %r{^https?://[^/]+$}
       url + "/"
-    when %r{^[.\d\w]+/.*$}
+    when %r{^[.\d\w-]+/.*$}
       "http://" + url
-    when %r{^[.\d\w]+$}
+    when %r{^[.\d\w-]+$}
       "http://" + url + "/"
     else
       raise InvalidOpenId.new("#{url} is not an OpenID URL")

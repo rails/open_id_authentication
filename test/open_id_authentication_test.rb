@@ -28,7 +28,7 @@ class OpenIdAuthenticationTest < Test::Unit::TestCase
   end
 
   def test_authentication_should_fail_when_the_identity_server_times_out
-    @controller.stubs(:open_id_consumer).returns(stub(:begin => Proc.new { raise Timeout::Error }))
+    @controller.stubs(:open_id_consumer).returns(stub(:begin => Proc.new { raise Timeout::Error, "Identity Server took too long." }))
 
     @controller.send(:authenticate_with_open_id, "http://someone.example.com") do |result, identity_url|
       assert result.missing?

@@ -13,7 +13,9 @@ class NormalizeTest < Test::Unit::TestCase
     "http://openid.aol.com/nextangler"  => "http://openid.aol.com/nextangler",
     "https://openid.aol.com/nextangler" => "https://openid.aol.com/nextangler",
     "loudthinking.com"                  => "http://loudthinking.com/",
-    "http://loudthinking.com"           => "http://loudthinking.com/"
+    "http://loudthinking.com"           => "http://loudthinking.com/",
+    "techno-weenie.net"                 => "http://techno-weenie.net/",
+    "http://techno-weenie.net"          => "http://techno-weenie.net/"
   }
 
   def test_normalizations
