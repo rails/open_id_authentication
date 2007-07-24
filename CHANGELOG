@@ -1,3 +1,5 @@
+* Use URI instead of regexps to normalize the URL and gain free, better matching #8136 [dkubb]
+
 * Allow -'s in #normalize_url [Rick]
 
 * remove instance of mattr_accessor, it was breaking tests since they don't load ActiveSupport.  Fix Timeout test [Rick]
