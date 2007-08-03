@@ -138,7 +138,7 @@ module OpenIdAuthentication
     def open_id_redirect_url(open_id_response)
       open_id_response.redirect_url(
         request.protocol + request.host_with_port + "/",
-        open_id_response.return_to("#{request.protocol + request.host_with_port + request.path}?open_id_complete=1")
+        open_id_response.return_to("#{request.protocol + request.host_with_port + request.relative_url_root + request.path}?open_id_complete=1")
       )     
     end
 
