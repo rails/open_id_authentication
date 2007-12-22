@@ -122,8 +122,10 @@ module OpenIdAuthentication
     
     def open_id_store
       case store
-      when :db  : OpenIdAuthentication::DbStore.new
-      when :file: OpenID::FilesystemStore.new(OPEN_ID_AUTHENTICATION_DIR)
+      when :db
+        OpenIdAuthentication::DbStore.new
+      when :file
+        OpenID::FilesystemStore.new(OPEN_ID_AUTHENTICATION_DIR)
       else
         raise "Unknown store: #{store}"
       end
