@@ -1,3 +1,5 @@
+* Tied plugin to ruby-openid 1.1.4 gem until we can make it compatible with 2.x [DHH]
+
 * Use URI instead of regexps to normalize the URL and gain free, better matching #8136 [dkubb]
 
 * Allow -'s in #normalize_url [Rick]
