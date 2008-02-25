@@ -57,14 +57,12 @@ module OpenIdAuthentication
   end
 
   def self.normalize_url(url)
-    begin
-      uri = URI.parse(url)
-      uri = URI.parse("http://#{uri}") unless uri.scheme
-      uri.scheme = uri.scheme.downcase  # URI should do this
-      uri.normalize.to_s
-    rescue URI::InvalidURIError
-      raise InvalidOpenId.new("#{url} is not an OpenID URL")
-    end
+    uri = URI.parse(url.strip)
+    uri = URI.parse("http://#{uri}") unless uri.scheme
+    uri.scheme = uri.scheme.downcase  # URI should do this
+    uri.normalize.to_s
+  rescue URI::InvalidURIError
+    raise InvalidOpenId.new("#{url} is not an OpenID URL")
   end
 
 

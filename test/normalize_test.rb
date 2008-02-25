@@ -20,7 +20,8 @@ class NormalizeTest < Test::Unit::TestCase
     "https://loudthinking.com:443"          => "https://loudthinking.com/",
     "http://loudthinking.com:8080"          => "http://loudthinking.com:8080/",
     "techno-weenie.net"                     => "http://techno-weenie.net/",
-    "http://techno-weenie.net"              => "http://techno-weenie.net/"
+    "http://techno-weenie.net"              => "http://techno-weenie.net/",
+    "http://techno-weenie.net  "            => "http://techno-weenie.net/"
   }
 
   def test_normalizations
