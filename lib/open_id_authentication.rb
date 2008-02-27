@@ -1,3 +1,5 @@
+require 'uri'
+
 module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
   
@@ -57,7 +59,7 @@ module OpenIdAuthentication
   end
 
   def self.normalize_url(url)
-    uri = URI.parse(url.strip)
+    uri = URI.parse(url.to_s.strip)
     uri = URI.parse("http://#{uri}") unless uri.scheme
     uri.scheme = uri.scheme.downcase  # URI should do this
     uri.normalize.to_s

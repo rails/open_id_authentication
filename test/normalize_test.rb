@@ -29,8 +29,9 @@ class NormalizeTest < Test::Unit::TestCase
       assert_equal to, normalize_url(from)
     end
   end
-  
+
   def test_broken_open_id
+    assert_raises(InvalidOpenId) { normalize_url(nil) }
     assert_raises(InvalidOpenId) { normalize_url("=name") }
   end
 end
