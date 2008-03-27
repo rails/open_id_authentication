@@ -8,7 +8,7 @@ Provides a thin wrapper around the excellent ruby-openid gem from JanRan. Be sur
 To understand what OpenID is about and how it works, it helps to read the documentation for lib/openid/consumer.rb
 from that gem.
 
-The specification used is http://openid.net/specs/openid-authentication-1_1.html (not the 2.0 draft).
+The specification used is http://openid.net/specs/openid-authentication-2_0.html.
 
 
 Prerequisites

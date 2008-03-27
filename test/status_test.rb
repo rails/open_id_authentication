@@ -1,7 +1,4 @@
-require 'test/unit'
-
-RAILS_ROOT = File.dirname(__FILE__)
-require File.dirname(__FILE__) + "/../lib/open_id_authentication"
+require File.dirname(__FILE__) + '/test_helper'
 
 class StatusTest < Test::Unit::TestCase
   include OpenIdAuthentication

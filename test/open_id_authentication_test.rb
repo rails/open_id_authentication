@@ -1,14 +1,4 @@
-require 'test/unit'
-
-require 'rubygems'
-gem 'mocha'
-require 'mocha'
-
-gem 'ruby-openid'
-require 'openid'
-
-RAILS_ROOT = File.dirname(__FILE__)
-require File.dirname(__FILE__) + "/../lib/open_id_authentication"
+require File.dirname(__FILE__) + '/test_helper'
 
 class OpenIdAuthenticationTest < Test::Unit::TestCase
   def setup
@@ -19,8 +9,10 @@ class OpenIdAuthenticationTest < Test::Unit::TestCase
   end
 
   def test_authentication_should_fail_when_the_identity_server_is_missing
-    @controller.stubs(:open_id_consumer).returns(stub(:begin => stub(:status => OpenID::FAILURE)))
-    
+    open_id_consumer = mock()
+    open_id_consumer.expects(:begin).raises(OpenID::OpenIDError)
+    @controller.stubs(:open_id_consumer).returns(open_id_consumer)
+
     @controller.send(:authenticate_with_open_id, "http://someone.example.com") do |result, identity_url|
       assert result.missing?
       assert_equal "Sorry, the OpenID server couldn't be found", result.message
@@ -28,7 +20,9 @@ class OpenIdAuthenticationTest < Test::Unit::TestCase
   end
 
   def test_authentication_should_fail_when_the_identity_server_times_out
-    @controller.stubs(:open_id_consumer).returns(stub(:begin => Proc.new { raise Timeout::Error, "Identity Server took too long." }))
+    open_id_consumer = mock()
+    open_id_consumer.expects(:begin).raises(Timeout::Error, "Identity Server took too long.")
+    @controller.stubs(:open_id_consumer).returns(open_id_consumer)
 
     @controller.send(:authenticate_with_open_id, "http://someone.example.com") do |result, identity_url|
       assert result.missing?
@@ -37,8 +31,8 @@ class OpenIdAuthenticationTest < Test::Unit::TestCase
   end
 
   def test_authentication_should_begin_when_the_identity_server_is_present
-    @controller.stubs(:open_id_consumer).returns(stub(:begin => stub(:status => OpenID::SUCCESS)))
-    @controller.expects(:begin_open_id_authentication) 
+    @controller.stubs(:open_id_consumer).returns(stub(:begin => true))
+    @controller.expects(:begin_open_id_authentication)
     @controller.send(:authenticate_with_open_id, "http://someone.example.com")
   end
 end
