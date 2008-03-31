@@ -26,7 +26,7 @@ module OpenIdAuthentication
     ERROR_MESSAGES = {
       :missing      => "Sorry, the OpenID server couldn't be found",
       :canceled     => "OpenID verification was canceled",
-      :failed       => "Sorry, the OpenID verification failed",
+      :failed       => "OpenID verification failed",
       :setup_needed => "OpenID verification needs setup"
     }
 
