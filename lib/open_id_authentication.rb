@@ -38,12 +38,8 @@ module OpenIdAuthentication
       @code = code
     end
 
-    def ===(code)
-      if code == :unsuccessful && unsuccessful?
-        true
-      else
-        @code == code
-      end
+    def status
+      @code
     end
 
     ERROR_MESSAGES.keys.each { |state| define_method("#{state}?") { @code == state } }
