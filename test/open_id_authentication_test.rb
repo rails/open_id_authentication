@@ -20,6 +20,13 @@ class OpenIdAuthenticationTest < Test::Unit::TestCase
     end
   end
 
+  def test_authentication_should_be_invalid_when_the_identity_url_is_invalid
+    @controller.send(:authenticate_with_open_id, "!") do |result, identity_url|
+      assert result.invalid?, "Result expected to be invalid but was not"
+      assert_equal "Sorry, but this does not appear to be a valid OpenID", result.message
+    end
+  end
+
   def test_authentication_should_fail_when_the_identity_server_times_out
     open_id_consumer = mock()
     open_id_consumer.expects(:begin).raises(Timeout::Error, "Identity Server took too long.")

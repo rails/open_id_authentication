@@ -148,6 +148,8 @@ You can support it in your app by changing #open_id_authentication
           case result.status
           when :missing
             failed_login "Sorry, the OpenID server couldn't be found"
+          when :invalid
+            failed_login "Sorry, but this does not appear to be a valid OpenID"
           when :canceled
             failed_login "OpenID verification was canceled"
           when :failed

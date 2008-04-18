@@ -25,6 +25,7 @@ module OpenIdAuthentication
   class Result
     ERROR_MESSAGES = {
       :missing      => "Sorry, the OpenID server couldn't be found",
+      :invalid      => "Sorry, but this does not appear to be a valid OpenID",
       :canceled     => "OpenID verification was canceled",
       :failed       => "OpenID verification failed",
       :setup_needed => "OpenID verification needs setup"
@@ -79,7 +80,7 @@ module OpenIdAuthentication
 
     def authenticate_with_open_id(identity_url = params[:openid_url], options = {}, &block) #:doc:
       if params[:open_id_complete].nil?
-        begin_open_id_authentication(normalize_url(identity_url), options, &block)
+        begin_open_id_authentication(identity_url, options, &block)
       else
         complete_open_id_authentication(&block)
       end
@@ -87,10 +88,13 @@ module OpenIdAuthentication
 
   private
     def begin_open_id_authentication(identity_url, options = {})
+      identity_url = normalize_url(identity_url)
       return_to = options.delete(:return_to)
       open_id_request = open_id_consumer.begin(identity_url)
       add_simple_registration_fields(open_id_request, options)
       redirect_to(open_id_redirect_url(open_id_request, return_to))
+    rescue OpenIdAuthentication::InvalidOpenId => e
+      yield Result[:invalid], identity_url, nil
     rescue OpenID::OpenIDError, Timeout::Error => e
       logger.error("[OPENID] #{e}")
       yield Result[:missing], identity_url, nil
