@@ -1,6 +1,7 @@
 require 'uri'
 require 'openid/extensions/sreg'
 require 'openid/store/filesystem'
+require File.join(File.dirname(__FILE__), 'open_id_authentication/timeout_fixes') if OpenID::VERSION == "2.0.4"
 
 module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
