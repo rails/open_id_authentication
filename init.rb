@@ -12,6 +12,9 @@ else
   end
 end
 
-config.to_prepare do
-  ActionController::Base.send :include, OpenIdAuthentication
-end
+# FIXME: Module is not being included
+# config.to_prepare do
+#   ActionController::Base.send :include, OpenIdAuthentication
+# end
+
+ActionController::Base.send :include, OpenIdAuthentication
