@@ -19,12 +19,21 @@ database tables to store the authentication keys. So you'll have to run the migr
 
   rake open_id_authentication:db:create
 
+Or, use the included generators to install or upgrade:
+
+  ./script/generate open_id_authentication_tables MigrationName
+  ./script/generate upgrade_open_id_authentication_tables MigrationName
+
 Alternatively, you can use the file-based store, which just relies on on tmp/openids being present in RAILS_ROOT. But be aware that this store only works if you have a single application server. And it's not safe to use across NFS. It's recommended that you use the database store if at all possible. To use the file-based store, you'll also have to add this line to your config/environment.rb:
 
   OpenIdAuthentication.store = :file
 
 This particular plugin also relies on the fact that the authentication action allows for both POST and GET operations.
 If you're using RESTful authentication, you'll need to explicitly allow for this in your routes.rb. 
+
+The plugin also expects to find a root_url method that points to the home page of your site. You can accomplish this by using a root route in config/routes.rb:
+
+  map.root :controller => 'articles'
 
 This plugin relies on Rails Edge revision 6317 or newer.
 
@@ -38,6 +47,7 @@ not a destination.
 
 config/routes.rb
 
+  map.root :controller => 'articles'
   map.open_id_complete 'session', :controller => "sessions", :action => "create", :requirements => { :method => :get }
   map.resource :session
 
