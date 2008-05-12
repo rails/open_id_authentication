@@ -1,7 +1,10 @@
 require 'uri'
 require 'openid/extensions/sreg'
 require 'openid/store/filesystem'
-require File.join(File.dirname(__FILE__), 'open_id_authentication/timeout_fixes') if OpenID::VERSION == "2.0.4"
+
+require File.dirname(__FILE__) + '/open_id_authentication/db_store'
+require File.dirname(__FILE__) + '/open_id_authentication/mem_cache_store'
+require File.dirname(__FILE__) + '/open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
 
 module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
@@ -10,8 +13,19 @@ module OpenIdAuthentication
     @@store
   end
 
-  def self.store=(value)
-    @@store = value
+  def self.store=(*store_option)
+    store, *parameters = *([ store_option ].flatten)
+
+    @@store = case store
+    when :db
+      OpenIdAuthentication::DbStore.new
+    when :mem_cache
+      OpenIdAuthentication::MemCacheStore.new(*parameters)
+    when :file
+      OpenID::Store::Filesystem.new(OPEN_ID_AUTHENTICATION_DIR)
+    else
+      raise "Unknown store: #{store}"
+    end
   end
 
   self.store = :db
@@ -121,17 +135,6 @@ module OpenIdAuthentication
 
     def open_id_consumer
       OpenID::Consumer.new(session, open_id_store)
-    end
-
-    def open_id_store
-      case store
-      when :db
-        OpenIdAuthentication::DbStore.new
-      when :file
-        OpenID::FilesystemStore.new(OPEN_ID_AUTHENTICATION_DIR)
-      else
-        raise "Unknown store: #{store}"
-      end
     end
 
     def add_simple_registration_fields(open_id_request, fields)
