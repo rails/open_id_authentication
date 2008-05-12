@@ -41,9 +41,29 @@ This plugin relies on Rails Edge revision 6317 or newer.
 Example
 =======
 
-This example is just to meant to demonstrate how you could use OpenID authentication. You'll might well want to add
+This example is just to meant to demonstrate how you could use OpenID authentication. You might well want to add
 salted hash logins instead of plain text passwords and other requirements on top of this. Treat it as a starting point,
 not a destination.
+
+Note that the User model referenced in the simple example below has an 'identity_url' attribute. You will want to add the same or similar field to whatever
+model you are using for authentication.
+
+Also of note is the following code block used in the example below:
+
+  authenticate_with_open_id do |result, identity_url|
+    ...
+  end
+  
+In the above code block, 'identity_url' will need to match user.identity_url exactly. 'identity_url' will be a string in the form of 'http://example.com' -
+If you are storing just 'example.com' with your user, the lookup will fail.
+
+There is a handy method in this plugin called 'normalize_url' that will help with validating OpenID URLs.
+
+  OpenIdAuthentication.normalize_url(user.identity_url)
+
+The above will return a standardized version of the OpenID URL - the above called with 'example.com' will return 'http://example.com/'
+It will also raise an InvalidOpenId exception if the URL is determined to not be valid.
+Use the above code in your User model and validate OpenID URLs before saving them.
 
 config/routes.rb
 
