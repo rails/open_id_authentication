@@ -30,10 +30,6 @@ module OpenIdAuthentication
 
   self.store = :db
 
-  def store
-    OpenIdAuthentication.store
-  end
-
   class InvalidOpenId < StandardError
   end
 
@@ -134,7 +130,7 @@ module OpenIdAuthentication
     end
 
     def open_id_consumer
-      OpenID::Consumer.new(session, open_id_store)
+      OpenID::Consumer.new(session, OpenIdAuthentication.store)
     end
 
     def add_simple_registration_fields(open_id_request, fields)
