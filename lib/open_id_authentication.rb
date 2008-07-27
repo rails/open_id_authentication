@@ -83,13 +83,21 @@ module OpenIdAuthentication
       OpenIdAuthentication.normalize_url(url)
     end
 
-    # The parameter name of "openid_url" is used rather than the Rails convention "open_id_url"
+    # The parameter name of "openid_identifier" is used rather than the Rails convention "open_id_identifier"
     # because that's what the specification dictates in order to get browser auto-complete working across sites
-    def using_open_id?(identity_url = params[:openid_url]) #:doc:
+    def using_open_id?(identity_url = params[:openid_identifier]) #:doc:
+      if params.has_key?(:openid_url)
+        puts '[OPENID] The conventional field name has changed from "openid_url" to "openid_identifier"'
+      end
+
       !identity_url.blank? || params[:open_id_complete]
     end
 
-    def authenticate_with_open_id(identity_url = params[:openid_url], options = {}, &block) #:doc:
+    def authenticate_with_open_id(identity_url = params[:openid_identifier], options = {}, &block) #:doc:
+      if params.has_key?(:openid_url)
+        puts '[OPENID] The conventional field name has changed from "openid_url" to "openid_identifier"'
+      end
+
       if params[:open_id_complete].nil?
         begin_open_id_authentication(identity_url, options, &block)
       else

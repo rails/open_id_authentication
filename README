@@ -90,8 +90,8 @@ app/views/sessions/new.erb
     </p>
 
     <p>
-      <label for="openid_url">OpenID:</label>
-      <%= text_field_tag "openid_url" %>
+      <label for="openid_identifier">OpenID:</label>
+      <%= text_field_tag "openid_identifier" %>
     </p>
 
     <p>
