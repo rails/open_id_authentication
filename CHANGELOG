@@ -1,3 +1,5 @@
+* Fake HTTP method from OpenID server since they only support a GET. Eliminates the need to set an extra route to match the server's reply. [Josh Peek]
+
 * OpenID 2.0 recommends that forms should use the field name "openid_identifier" rather than "openid_url" [Josh Peek]
 
 * Return open_id_response.display_identifier to the application instead of .endpoints.claimed_id. [nbibler]

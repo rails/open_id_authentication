@@ -4,6 +4,7 @@ require 'openid/store/filesystem'
 
 require File.dirname(__FILE__) + '/open_id_authentication/db_store'
 require File.dirname(__FILE__) + '/open_id_authentication/mem_cache_store'
+require File.dirname(__FILE__) + '/open_id_authentication/request'
 require File.dirname(__FILE__) + '/open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
 
 module OpenIdAuthentication
@@ -85,18 +86,13 @@ module OpenIdAuthentication
 
     # The parameter name of "openid_identifier" is used rather than the Rails convention "open_id_identifier"
     # because that's what the specification dictates in order to get browser auto-complete working across sites
-    def using_open_id?(identity_url = params[:openid_identifier]) #:doc:
-      if params.has_key?(:openid_url)
-        puts '[OPENID] The conventional field name has changed from "openid_url" to "openid_identifier"'
-      end
-
+    def using_open_id?(identity_url = nil) #:doc:
+      identity_url ||= params[:openid_identifier] || params[:openid_url]
       !identity_url.blank? || params[:open_id_complete]
     end
 
-    def authenticate_with_open_id(identity_url = params[:openid_identifier], options = {}, &block) #:doc:
-      if params.has_key?(:openid_url)
-        puts '[OPENID] The conventional field name has changed from "openid_url" to "openid_identifier"'
-      end
+    def authenticate_with_open_id(identity_url = nil, options = {}, &block) #:doc:
+      identity_url ||= params[:openid_identifier] || params[:openid_url]
 
       if params[:open_id_complete].nil?
         begin_open_id_authentication(identity_url, options, &block)
@@ -108,10 +104,12 @@ module OpenIdAuthentication
   private
     def begin_open_id_authentication(identity_url, options = {})
       identity_url = normalize_url(identity_url)
-      return_to = options.delete(:return_to)
+      return_to    = options.delete(:return_to)
+      method       = options.delete(:method)
+
       open_id_request = open_id_consumer.begin(identity_url)
       add_simple_registration_fields(open_id_request, options)
-      redirect_to(open_id_redirect_url(open_id_request, return_to))
+      redirect_to(open_id_redirect_url(open_id_request, return_to, method))
     rescue OpenIdAuthentication::InvalidOpenId => e
       yield Result[:invalid], identity_url, nil
     rescue OpenID::OpenIDError, Timeout::Error => e
@@ -149,7 +147,8 @@ module OpenIdAuthentication
       open_id_request.add_extension(sreg_request)
     end
 
-    def open_id_redirect_url(open_id_request, return_to = nil)
+    def open_id_redirect_url(open_id_request, return_to = nil, method = nil)
+      open_id_request.return_to_args['_method'] = (method || request.method).to_s
       open_id_request.return_to_args['open_id_complete'] = '1'
       open_id_request.redirect_url(root_url, return_to || requested_url)
     end

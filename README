@@ -68,7 +68,6 @@ Use the above code in your User model and validate OpenID URLs before saving the
 config/routes.rb
 
   map.root :controller => 'articles'
-  map.open_id_complete 'session', :controller => "sessions", :action => "create", :requirements => { :method => :get }
   map.resource :session
 
 
