@@ -70,13 +70,39 @@ module OpenIdAuthentication
     end
   end
 
+  # normalizes an OpenID according to http://openid.net/specs/openid-authentication-2_0.html#normalization
+  def self.normalize( open_id )
+    # clean up whitespace
+    open_id = open_id.to_s.strip
+    
+    # if an XRI has a prefix, strip it.
+    open_id.gsub!(/xri:\/\//i, '')
+    
+    # dodge XRIs -- TODO: validate, don't just skip.
+    unless ['=', '@', '+', '$', '!', '('].include? open_id[0].chr 
+      
+      # does it begin with http?  if not, add it.
+      open_id = "http://#{open_id}" unless open_id =~ /^http/i
+
+      # strip any fragments
+      open_id.gsub!(/\#(.*)$/, '')
+
+      begin
+        uri = URI.parse(open_id)
+        uri.scheme = uri.scheme.downcase  # URI should do this
+        open_id = uri.normalize.to_s    
+      rescue URI::InvalidURIError
+        raise InvalidOpenId.new("#{url} is not an OpenID URL")
+      end
+      
+    end
+
+    return open_id
+  end
+
+  # deprecated for OpenID 2.0, where not all OpenIDs are URLs
   def self.normalize_url(url)
-    uri = URI.parse(url.to_s.strip)
-    uri = URI.parse("http://#{uri}") unless uri.scheme
-    uri.scheme = uri.scheme.downcase  # URI should do this
-    uri.normalize.to_s
-  rescue URI::InvalidURIError
-    raise InvalidOpenId.new("#{url} is not an OpenID URL")
+    self.normalize( url )
   end
 
   protected
