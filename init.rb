@@ -12,6 +12,8 @@ else
   end
 end
 
+config.middleware.use OpenIdAuthentication
+
 config.to_prepare do
   ActionController::Base.send :include, OpenIdAuthentication
 end

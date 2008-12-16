@@ -1,14 +1,17 @@
 require 'uri'
-require 'openid/extensions/sreg'
 require 'openid/store/filesystem'
 
+require File.dirname(__FILE__) + '/../vendor/rack-openid/lib/rack/openid'
 require File.dirname(__FILE__) + '/open_id_authentication/db_store'
 require File.dirname(__FILE__) + '/open_id_authentication/mem_cache_store'
-require File.dirname(__FILE__) + '/open_id_authentication/request'
 require File.dirname(__FILE__) + '/open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
 
 module OpenIdAuthentication
-  OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids"
+  def self.new(app)
+    ::Rack::OpenID.new(app, OpenIdAuthentication.store)
+  end
+
+  OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids" if defined? RAILS_ROOT
 
   def self.store
     @@store
@@ -30,9 +33,6 @@ module OpenIdAuthentication
   end
 
   self.store = :db
-
-  class InvalidOpenId < StandardError
-  end
 
   class Result
     ERROR_MESSAGES = {
@@ -70,132 +70,56 @@ module OpenIdAuthentication
     end
   end
 
-  # normalizes an OpenID according to http://openid.net/specs/openid-authentication-2_0.html#normalization
-  def self.normalize_identifier(identifier)
-    # clean up whitespace
-    identifier = identifier.to_s.strip
-
-    # if an XRI has a prefix, strip it.
-    identifier.gsub!(/xri:\/\//i, '')
-
-    # dodge XRIs -- TODO: validate, don't just skip.
-    unless ['=', '@', '+', '$', '!', '('].include?(identifier.at(0))
-      # does it begin with http?  if not, add it.
-      identifier = "http://#{identifier}" unless identifier =~ /^http/i
-
-      # strip any fragments
-      identifier.gsub!(/\#(.*)$/, '')
-
-      begin
-        uri = URI.parse(identifier)
-        uri.scheme = uri.scheme.downcase  # URI should do this
-        identifier = uri.normalize.to_s
-      rescue URI::InvalidURIError
-        raise InvalidOpenId.new("#{identifier} is not an OpenID identifier")
-      end
-    end
-
-    return identifier
-  end
-
-  # deprecated for OpenID 2.0, where not all OpenIDs are URLs
-  def self.normalize_url(url)
-    ActiveSupport::Deprecation.warn "normalize_identifier has been deprecated, use normalize instead"
-    self.normalize_identifier(url)
-  end
-
   protected
-    def normalize_url(url)
-      OpenIdAuthentication.normalize_identifier(url)
+    # The parameter name of "openid_identifier" is used rather than
+    # the Rails convention "open_id_identifier" because that's what
+    # the specification dictates in order to get browser auto-complete
+    # working across sites
+    def using_open_id?(identifier = nil) #:doc:
+      identifier ||= open_id_identifier
+      !identifier.blank?
     end
 
-    # The parameter name of "openid_identifier" is used rather than the Rails convention "open_id_identifier"
-    # because that's what the specification dictates in order to get browser auto-complete working across sites
-    def using_open_id?(identity_url = nil) #:doc:
-      identity_url ||= params[:openid_identifier] || params[:openid_url]
-      !identity_url.blank? || params[:open_id_complete]
-    end
+    def authenticate_with_open_id(identifier = nil, options = {}, &block) #:doc:
+      identifier ||= open_id_identifier
 
-    def authenticate_with_open_id(identity_url = nil, options = {}, &block) #:doc:
-      identity_url ||= params[:openid_identifier] || params[:openid_url]
-
-      if params[:open_id_complete].nil?
-        begin_open_id_authentication(identity_url, options, &block)
-      else
+      if request.env[Rack::OpenID::RESPONSE]
         complete_open_id_authentication(&block)
+      else
+        begin_open_id_authentication(identifier, options, &block)
       end
     end
 
   private
-    def begin_open_id_authentication(identity_url, options = {})
-      identity_url = normalize_url(identity_url)
-      return_to    = options.delete(:return_to)
-      method       = options.delete(:method)
+    def open_id_identifier
+      params[:openid_identifier] || params[:openid_url]
+    end
 
-      open_id_request = open_id_consumer.begin(identity_url)
-      add_simple_registration_fields(open_id_request, options)
-      redirect_to(open_id_redirect_url(open_id_request, return_to, method))
-    rescue OpenIdAuthentication::InvalidOpenId => e
-      yield Result[:invalid], identity_url, nil
-    rescue OpenID::OpenIDError, Timeout::Error => e
-      logger.error("[OPENID] #{e}")
-      yield Result[:missing], identity_url, nil
+    def begin_open_id_authentication(identifier, options = {})
+      options[:identifier] = identifier
+      qs = Rack::Utils.build_query(options)
+      response.headers['X-OpenID-Authenticate'] = qs
+      head :unauthorized
     end
 
     def complete_open_id_authentication
-      params_with_path = params.reject { |key, value| request.path_parameters[key] }
-      params_with_path.delete(:format)
-      open_id_response = timeout_protection_from_identity_server { open_id_consumer.complete(params_with_path, requested_url) }
-      identity_url     = normalize_url(open_id_response.display_identifier) if open_id_response.display_identifier
+      response   = request.env[Rack::OpenID::RESPONSE]
+      identifier = response.display_identifier
 
-      case open_id_response.status
+      case response.status
       when OpenID::Consumer::SUCCESS
-        yield Result[:successful], identity_url, OpenID::SReg::Response.from_success_response(open_id_response)
+        yield Result[:successful], identifier,
+          OpenID::SReg::Response.from_success_response(response)
+      when :missing
+        yield Result[:missing], identifier, nil
+      when :invalid
+        yield Result[:invalid], identifier, nil
       when OpenID::Consumer::CANCEL
-        yield Result[:canceled], identity_url, nil
+        yield Result[:canceled], identifier, nil
       when OpenID::Consumer::FAILURE
-        yield Result[:failed], identity_url, nil
+        yield Result[:failed], identifier, nil
       when OpenID::Consumer::SETUP_NEEDED
-        yield Result[:setup_needed], open_id_response.setup_url, nil
+        yield Result[:setup_needed], response.setup_url, nil
       end
-    end
-
-    def open_id_consumer
-      OpenID::Consumer.new(session, OpenIdAuthentication.store)
-    end
-
-    def add_simple_registration_fields(open_id_request, fields)
-      sreg_request = OpenID::SReg::Request.new
-      sreg_request.request_fields(Array(fields[:required]).map(&:to_s), true) if fields[:required]
-      sreg_request.request_fields(Array(fields[:optional]).map(&:to_s), false) if fields[:optional]
-      sreg_request.policy_url = fields[:policy_url] if fields[:policy_url]
-      open_id_request.add_extension(sreg_request)
-    end
-
-    def open_id_redirect_url(open_id_request, return_to = nil, method = nil)
-      open_id_request.return_to_args['_method'] = (method || request.method).to_s
-      open_id_request.return_to_args['open_id_complete'] = '1'
-      open_id_request.redirect_url(root_url, return_to || requested_url)
-    end
-
-    def requested_url
-      relative_url_root = self.class.respond_to?(:relative_url_root) ?
-        self.class.relative_url_root.to_s :
-        request.relative_url_root
-      "#{request.protocol + request.host_with_port + relative_url_root + request.path}"
-    end
-
-    def timeout_protection_from_identity_server
-      yield
-    rescue Timeout::Error
-      Class.new do
-        def status
-          OpenID::FAILURE
-        end
-
-        def msg
-          "Identity server timed out"
-        end
-      end.new
     end
 end

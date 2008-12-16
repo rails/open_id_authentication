@@ -1,0 +1,3 @@
+[submodule "vendor/rack-openid"]
+	path = vendor/rack-openid
+	url = git://github.com/josh/rack-openid.git
