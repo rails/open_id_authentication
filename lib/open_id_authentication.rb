@@ -97,8 +97,8 @@ module OpenIdAuthentication
 
     def begin_open_id_authentication(identifier, options = {})
       options[:identifier] = identifier
-      qs = Rack::Utils.build_query(options)
-      response.headers['X-OpenID-Authenticate'] = qs
+      value = Rack::OpenID.build_header(options)
+      response.headers[Rack::OpenID::AUTHENTICATE_HEADER] = value
       head :unauthorized
     end
 
