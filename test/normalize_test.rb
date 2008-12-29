@@ -22,11 +22,11 @@ class NormalizeTest < Test::Unit::TestCase
 
   def test_normalizations
     NORMALIZATIONS.each do |from, to|
-      assert_equal to, normalize_url(from)
+      assert_equal to, normalize_identifier(from)
     end
   end
 
   def test_broken_open_id
-    assert_raises(InvalidOpenId) { normalize_url(nil) }
+    assert_raises(InvalidOpenId) { normalize_identifier(nil) }
   end
 end
