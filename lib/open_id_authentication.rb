@@ -100,12 +100,16 @@ module OpenIdAuthentication
 
   # deprecated for OpenID 2.0, where not all OpenIDs are URLs
   def self.normalize_url(url)
-    ActiveSupport::Deprecation.warn "normalize_identifier has been deprecated, use normalize instead"
+    ActiveSupport::Deprecation.warn "normalize_url has been deprecated, use normalize_identifier instead"
     self.normalize_identifier(url)
   end
 
   protected
     def normalize_url(url)
+      OpenIdAuthentication.normalize_url(url)
+    end
+
+    def normalize_identifier(url)
       OpenIdAuthentication.normalize_identifier(url)
     end
 
@@ -128,7 +132,7 @@ module OpenIdAuthentication
 
   private
     def begin_open_id_authentication(identity_url, options = {})
-      identity_url = normalize_url(identity_url)
+      identity_url = normalize_identifier(identity_url)
       return_to    = options.delete(:return_to)
       method       = options.delete(:method)
 
@@ -146,7 +150,7 @@ module OpenIdAuthentication
       params_with_path = params.reject { |key, value| request.path_parameters[key] }
       params_with_path.delete(:format)
       open_id_response = timeout_protection_from_identity_server { open_id_consumer.complete(params_with_path, requested_url) }
-      identity_url     = normalize_url(open_id_response.display_identifier) if open_id_response.display_identifier
+      identity_url     = normalize_identifier(open_id_response.display_identifier) if open_id_response.display_identifier
 
       case open_id_response.status
       when OpenID::Consumer::SUCCESS
