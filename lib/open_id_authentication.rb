@@ -6,7 +6,6 @@ require 'openid/store/filesystem'
 require File.dirname(__FILE__) + '/open_id_authentication/association'
 require File.dirname(__FILE__) + '/open_id_authentication/nonce'
 require File.dirname(__FILE__) + '/open_id_authentication/db_store'
-require File.dirname(__FILE__) + '/open_id_authentication/mem_cache_store'
 require File.dirname(__FILE__) + '/open_id_authentication/request'
 require File.dirname(__FILE__) + '/open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
 
@@ -23,12 +22,10 @@ module OpenIdAuthentication
     @@store = case store
     when :db
       OpenIdAuthentication::DbStore.new
-    when :mem_cache
-      OpenIdAuthentication::MemCacheStore.new(*parameters)
     when :file
       OpenID::Store::Filesystem.new(OPEN_ID_AUTHENTICATION_DIR)
     else
-      raise "Unknown store: #{store}"
+      store
     end
   end
 
