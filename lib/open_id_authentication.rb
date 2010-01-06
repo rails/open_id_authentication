@@ -1,4 +1,5 @@
 require 'uri'
+require 'openid'
 require 'openid/extensions/sreg'
 require 'openid/extensions/ax'
 require 'openid/store/filesystem'
