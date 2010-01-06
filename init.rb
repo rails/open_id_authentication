@@ -8,7 +8,7 @@ rescue LoadError
   abort "Install the ruby-openid gem to enable OpenID support"
 end
 
-config.to_prepare do
+ActionController::Dispatcher.to_prepare do
   OpenID::Util.logger = Rails.logger
   ActionController::Base.send :include, OpenIdAuthentication
 end
