@@ -8,6 +8,7 @@ task :default => :test
 desc 'Test the open_id_authentication plugin.'
 Rake::TestTask.new(:test) do |t|
   t.ruby_opts << '-rubygems'
+  t.libs << 'test'
   t.pattern = 'test/**/*_test.rb'
   t.verbose = true
 end
