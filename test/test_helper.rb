@@ -1,17 +1,11 @@
+RAILS_ROOT = File.dirname(__FILE__) unless defined? RAILS_ROOT
+
 require 'test/unit'
-require 'rubygems'
-
-gem 'activesupport'
-require 'active_support'
-
-gem 'actionpack'
-require 'action_controller'
-
-gem 'mocha'
 require 'mocha'
 
-gem 'ruby-openid'
-require 'openid'
+require 'active_support'
+require 'active_record'
+require 'action_controller'
+require 'initializer' # for Rails.root
 
-RAILS_ROOT = File.dirname(__FILE__) unless defined? RAILS_ROOT
-require File.dirname(__FILE__) + "/../lib/open_id_authentication"
+require 'open_id_authentication'
