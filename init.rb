@@ -1,15 +1,11 @@
-if config.respond_to?(:gems)
+if Rails.version < '3'
   config.gem 'ruby-openid', :lib => 'openid', :version => '>=2.0.4'
-else
-  begin
-    require 'openid'
-  rescue LoadError
-    begin
-      gem 'ruby-openid', '>=2.0.4'
-    rescue Gem::LoadError
-      puts "Install the ruby-openid gem to enable OpenID support"
-    end
-  end
+end
+
+begin
+  require 'openid'
+rescue LoadError
+  abort "Install the ruby-openid gem to enable OpenID support"
 end
 
 config.to_prepare do
