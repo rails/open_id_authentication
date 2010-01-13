@@ -4,8 +4,6 @@ require 'openid/extensions/sreg'
 require 'openid/extensions/ax'
 require 'openid/store/filesystem'
 
-require 'open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
-
 require File.dirname(__FILE__) + '/../vendor/rack-openid/lib/rack/openid'
 
 module OpenIdAuthentication
