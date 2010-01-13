@@ -3,8 +3,7 @@ require 'openid'
 require 'openid/extensions/sreg'
 require 'openid/extensions/ax'
 require 'openid/store/filesystem'
-
-require File.dirname(__FILE__) + '/../vendor/rack-openid/lib/rack/openid'
+require 'rack/openid'
 
 module OpenIdAuthentication
   OPEN_ID_AUTHENTICATION_DIR = Rails.root.join('tmp/openids')
