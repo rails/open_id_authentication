@@ -3,8 +3,6 @@ require 'openid'
 require 'rack/openid'
 
 module OpenIdAuthentication
-  OPEN_ID_AUTHENTICATION_DIR = Rails.root.join('tmp/openids')
-
   def self.new(app)
     ::Rack::OpenID.new(app, OpenIdAuthentication.store)
   end
@@ -22,7 +20,7 @@ module OpenIdAuthentication
       OpenID::Store::Memory.new
     when :file
       require 'openid/store/filesystem'
-      OpenID::Store::Filesystem.new(OPEN_ID_AUTHENTICATION_DIR)
+      OpenID::Store::Filesystem.new(Rails.root.join('tmp/openids'))
     when :memcache
       require 'openid/store/memcache'
       OpenID::Store::Memcache.new(MemCache.new(parameters))
