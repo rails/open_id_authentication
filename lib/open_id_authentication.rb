@@ -4,9 +4,6 @@ require 'openid/extensions/sreg'
 require 'openid/extensions/ax'
 require 'openid/store/filesystem'
 
-require 'open_id_authentication/association'
-require 'open_id_authentication/nonce'
-require 'open_id_authentication/db_store'
 require 'open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
 
 require File.dirname(__FILE__) + '/../vendor/rack-openid/lib/rack/openid'
@@ -26,8 +23,8 @@ module OpenIdAuthentication
     store, *parameters = *([ store_option ].flatten)
 
     @@store = case store
-    when :db
-      OpenIdAuthentication::DbStore.new
+    when :memory
+      OpenID::Store::Memory.new
     when :file
       OpenID::Store::Filesystem.new(OPEN_ID_AUTHENTICATION_DIR)
     else
@@ -35,7 +32,7 @@ module OpenIdAuthentication
     end
   end
 
-  self.store = :db
+  self.store = :memory
 
   class Result
     ERROR_MESSAGES = {
