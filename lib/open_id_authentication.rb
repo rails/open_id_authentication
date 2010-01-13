@@ -2,7 +2,6 @@ require 'uri'
 require 'openid'
 require 'openid/extensions/sreg'
 require 'openid/extensions/ax'
-require 'openid/store/filesystem'
 require 'rack/openid'
 
 module OpenIdAuthentication
@@ -21,9 +20,14 @@ module OpenIdAuthentication
 
     @@store = case store
     when :memory
+      require 'openid/store/memory'
       OpenID::Store::Memory.new
     when :file
+      require 'openid/store/filesystem'
       OpenID::Store::Filesystem.new(OPEN_ID_AUTHENTICATION_DIR)
+    when :memcache
+      require 'openid/store/memcache'
+      OpenID::Store::Memcache.new(MemCache.new(parameters))
     else
       store
     end
