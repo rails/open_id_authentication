@@ -1,4 +1,4 @@
-require File.dirname(__FILE__) + '/test_helper'
+require 'test_helper'
 
 class OpenIdAuthenticationTest < Test::Unit::TestCase
   def setup
@@ -21,7 +21,7 @@ class OpenIdAuthenticationTest < Test::Unit::TestCase
   end
 
   def test_authentication_should_be_invalid_when_the_identity_url_is_invalid
-    @controller.send(:authenticate_with_open_id, "!") do |result, identity_url|
+    @controller.send(:authenticate_with_open_id, "a!") do |result, identity_url|
       assert result.invalid?, "Result expected to be invalid but was not"
       assert_equal "Sorry, but this does not appear to be a valid OpenID", result.message
     end

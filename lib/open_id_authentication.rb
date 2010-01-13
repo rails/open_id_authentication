@@ -1,16 +1,22 @@
 require 'uri'
+require 'openid'
+require 'openid/extensions/sreg'
+require 'openid/extensions/ax'
 require 'openid/store/filesystem'
 
+require 'open_id_authentication/association'
+require 'open_id_authentication/nonce'
+require 'open_id_authentication/db_store'
+require 'open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
+
 require File.dirname(__FILE__) + '/../vendor/rack-openid/lib/rack/openid'
-require File.dirname(__FILE__) + '/open_id_authentication/db_store'
-require File.dirname(__FILE__) + '/open_id_authentication/timeout_fixes' if OpenID::VERSION == "2.0.4"
 
 module OpenIdAuthentication
+  OPEN_ID_AUTHENTICATION_DIR = Rails.root.join('tmp/openids')
+
   def self.new(app)
     ::Rack::OpenID.new(app, OpenIdAuthentication.store)
   end
-
-  OPEN_ID_AUTHENTICATION_DIR = RAILS_ROOT + "/tmp/openids" if defined? RAILS_ROOT
 
   def self.store
     @@store
