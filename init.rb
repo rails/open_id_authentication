@@ -5,7 +5,7 @@ end
 
 config.middleware.use OpenIdAuthentication
 
-ActionController::Dispatcher.to_prepare do
+config.after_initialize do
   OpenID::Util.logger = Rails.logger
   ActionController::Base.send :include, OpenIdAuthentication
 end
