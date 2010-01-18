@@ -3,7 +3,7 @@ if Rails.version < '3'
   config.gem 'ruby-openid', :lib => 'openid', :version => '>=2.1.7'
 end
 
-config.middleware.use OpenIdAuthentication
+config.middleware.use :OpenIdAuthentication
 
 config.after_initialize do
   OpenID::Util.logger = Rails.logger
