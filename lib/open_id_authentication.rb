@@ -22,6 +22,7 @@ module OpenIdAuthentication
       require 'openid/store/filesystem'
       OpenID::Store::Filesystem.new(Rails.root.join('tmp/openids'))
     when :memcache
+      require 'memcache'
       require 'openid/store/memcache'
       OpenID::Store::Memcache.new(MemCache.new(parameters))
     else
