@@ -214,9 +214,9 @@ Some OpenID providers also support the OpenID AX (attribute exchange) protocol f
 Accessing AX data is very similar to the Simple Registration process, described above -- just add the URI identifier for the AX field to your :optional or :required parameters.  For example:
 
         authenticate_with_open_id(identity_url,
-            :required => [ :email, 'http://schema.openid.net/birthDate' ]) do |result, identity_url, registration|
+            :required => [ :email, 'http://schema.openid.net/birthDate' ]) do |result, identity_url, registration, ax|
 
-This would provide the sreg data for :email, and the AX data for 'http://schema.openid.net/birthDate'
+This would provide the sreg data for :email via registration, and the AX data for 'http://schema.openid.net/birthDate' via ax.
 
 
 
